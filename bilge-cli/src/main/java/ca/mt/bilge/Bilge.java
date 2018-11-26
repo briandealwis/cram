@@ -25,10 +25,15 @@ import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.configuration.LayerConfiguration;
 import com.google.cloud.tools.jib.configuration.Port;
 import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory;
+import com.google.cloud.tools.jib.image.ImageReference;
 import com.google.common.base.Joiner;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,6 +51,13 @@ import picocli.CommandLine.Spec;
 /** A simple commandp-line container builder. */
 public class Bilge implements Callable<Void> {
 
+  /** Transforms an image specification to an {@link ImageReference}. */
+  private static class ImageReferenceParser implements CommandLine.ITypeConverter<ImageReference> {
+    @Override
+    public ImageReference convert(String imageSpec) throws Exception {
+      return ImageReference.parse(imageSpec);
+    }
+  }
   /**
    * Parses a layer mapping of the form of {@code local-path:container-path}. A shortcut form,
    * {@code local-path} is also supported, equivalent to {@code local-path:/}.
@@ -153,6 +165,14 @@ public class Bilge implements Callable<Void> {
   private Map<String, String> labels;
 
   @Option(
+      names = {"-C", "--credential-helper"},
+      paramLabel = "helper",
+      description =
+          "add a credential helper, either a path to the helper,"
+              + "or a `docker-credential-<suffix>`")
+  private List<String> credentialHelpers = new ArrayList<>();
+
+  @Option(
       names = {"-p", "--port"},
       split = ",",
       paramLabel = "port",
@@ -174,16 +194,18 @@ public class Bilge implements Callable<Void> {
   @Parameters(
       index = "0",
       paramLabel = "base-image",
-      description = "the base image (e.g., busybox, nginx, gcr.io/distroless/java)")
-  private String baseImage;
+      description = "the base image (e.g., busybox, nginx, gcr.io/distroless/java)",
+      converter = ImageReferenceParser.class)
+  private ImageReference baseImage;
 
   @Parameters(
       index = "1",
       paramLabel = "destination-image",
       description =
           "the destination image (e.g., localhost:5000/image:1.0, "
-              + "gcr.io/project/image:latest)")
-  private String destinationImage;
+              + "gcr.io/project/image:latest)",
+      converter = ImageReferenceParser.class)
+  private ImageReference destinationImage;
 
   @Parameters(
       index = "2..*",
@@ -199,7 +221,7 @@ public class Bilge implements Callable<Void> {
       throw new CommandLine.ParameterException(
           commandSpec.commandLine(), "One of --docker or --registry is required");
     }
-    JibContainerBuilder builder = Jib.from(baseImage);
+    JibContainerBuilder builder = Jib.from(toCredentialedImage(baseImage));
     verbose("FROM " + baseImage);
     builder.setCreationTime(creationTime);
     if (entrypoint != null) {
@@ -240,7 +262,7 @@ public class Bilge implements Callable<Void> {
     Containerizer containerizer =
         toDocker
             ? Containerizer.to(DockerDaemonImage.named(destinationImage))
-            : Containerizer.to(RegistryImage.named(destinationImage));
+            : Containerizer.to(toCredentialedImage(destinationImage));
     containerizer.setAllowInsecureRegistries(insecure);
     containerizer.setToolName("bilge");
 
@@ -254,6 +276,27 @@ public class Bilge implements Callable<Void> {
     } finally {
       executor.shutdown();
     }
+  }
+
+  /** Create a {@link RegistryImage} with credential retrievers. */
+  private RegistryImage toCredentialedImage(ImageReference reference) {
+    RegistryImage registryImage = RegistryImage.named(reference);
+
+    // first add any explicitly specified credential helpers
+    CredentialRetrieverFactory factory = CredentialRetrieverFactory.forImage(reference);
+    for (String credentialHelper : credentialHelpers) {
+      Path path = Paths.get(credentialHelper);
+      if (Files.exists(path)) {
+        registryImage.addCredentialRetriever(factory.dockerCredentialHelper(path));
+      } else {
+        registryImage.addCredentialRetriever(factory.dockerCredentialHelper(credentialHelper));
+      }
+    }
+    // then add any other known helpers
+    registryImage.addCredentialRetriever(factory.inferCredentialHelper());
+    registryImage.addCredentialRetriever(factory.dockerConfig());
+
+    return registryImage;
   }
 
   private void verbose(String message) {
