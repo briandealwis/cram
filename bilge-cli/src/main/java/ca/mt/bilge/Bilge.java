@@ -25,6 +25,7 @@ import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.configuration.LayerConfiguration;
 import com.google.cloud.tools.jib.configuration.Port;
 import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath;
+import com.google.common.base.Joiner;
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -42,8 +43,13 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
-/** A simple container builder. */
+/** A simple commandp-line container builder. */
 public class Bilge implements Callable<Void> {
+
+  /**
+   * Parses a layer mapping of the form of {@code local-path:container-path}. A shortcut form,
+   * {@code local-path} is also supported, equivalent to {@code local-path:/}.
+   */
   private static class LayerDefinitionParser
       implements CommandLine.ITypeConverter<LayerConfiguration> {
     @Override
@@ -64,6 +70,7 @@ public class Bilge implements Callable<Void> {
     }
   }
 
+  /** Parses a port specification like {@code 25/tcp} into a {@link Port} object. */
   private static class PortParser implements CommandLine.ITypeConverter<Port> {
     private static Pattern portPattern = Pattern.compile("(?<port>\\d+)(?:/(?<protocol>tcp|udp))?");
 
@@ -89,30 +96,24 @@ public class Bilge implements Callable<Void> {
     }
   }
 
+  /** The magic starts here. */
   public static void main(String[] args) {
     CommandLine.call(new Bilge(), args);
   }
 
+  /** The Picocli command object. */
   @Spec private CommandSpec commandSpec;
 
   @Option(
-      names = {"-f", "--from"},
-      required = true,
-      paramLabel = "image",
-      description = "the base image (e.g., busybox, nginx, gcr.io/distroless/java)")
-  private String baseImage;
-
-  @Option(
-      names = {"-t", "--docker"},
+      names = {"-d", "--docker"},
       paramLabel = "image",
       description = "push result to local Docker daemon")
-  private String toDocker;
+  private boolean toDocker = false;
 
   @Option(
-      names = {"-T", "--registry"},
-      paramLabel = "host:port/image",
-      description = "push to registry (e.g., gcr.io/project/image:latest)")
-  private String toRegistry;
+      names = {"-r", "--registry"},
+      description = "push to registry")
+  private boolean toRegistry = false;
 
   @Option(
       names = {"-c", "--creation-time"},
@@ -125,20 +126,20 @@ public class Bilge implements Callable<Void> {
   private boolean verbose = false;
 
   @Option(
-      names = {"-E", "--entrypoint"},
+      names = {"-e", "--entrypoint"},
       paramLabel = "arg",
       split = ",",
       description = "set the container entrypoint")
   private List<String> entrypoint;
 
   @Option(
-      names = {"-A", "--arguments"},
+      names = {"-a", "--arguments"},
       split = ",",
       description = "set the container entrypoint's default arguments")
   private List<String> arguments;
 
   @Option(
-      names = {"-e", "--environment"},
+      names = {"-E", "--environment"},
       split = ",",
       paramLabel = "key=value",
       description = "add environment pairs")
@@ -171,6 +172,21 @@ public class Bilge implements Callable<Void> {
   private boolean insecure = false;
 
   @Parameters(
+      index = "0",
+      paramLabel = "base-image",
+      description = "the base image (e.g., busybox, nginx, gcr.io/distroless/java)")
+  private String baseImage;
+
+  @Parameters(
+      index = "1",
+      paramLabel = "destination-image",
+      description =
+          "the destination image (e.g., localhost:5000/image:1.0, "
+              + "gcr.io/project/image:latest)")
+  private String destinationImage;
+
+  @Parameters(
+      index = "2..*",
       paramLabel = "local/path[:/container/path]",
       description =
           "copies content from the local file system into the container; container path defaults to '/' if omitted.",
@@ -179,38 +195,41 @@ public class Bilge implements Callable<Void> {
 
   @Override
   public Void call() throws Exception {
-    if (toDocker == null && toRegistry == null) {
+    if (toDocker == toRegistry) {
       throw new CommandLine.ParameterException(
           commandSpec.commandLine(), "One of --docker or --registry is required");
     }
     JibContainerBuilder builder = Jib.from(baseImage);
+    verbose("FROM " + baseImage);
     builder.setCreationTime(creationTime);
     if (entrypoint != null) {
-      verbose("ENTRYPOINT: " + entrypoint);
+      verbose("ENTRYPOINT [" + Joiner.on(",").join(entrypoint) + "]");
       builder.setEntrypoint(entrypoint);
     }
     if (arguments != null) {
-      verbose("CMD: " + entrypoint);
+      verbose("CMD [" + Joiner.on(",").join(arguments) + "]");
       builder.setProgramArguments(arguments);
     }
     if (environment != null) {
-      verbose("ENV: " + environment);
       for (Entry<String, String> pair : environment.entrySet()) {
+        verbose("ENV " + pair.getKey() + "=" + pair.getValue());
         builder.addEnvironmentVariable(pair.getKey(), pair.getValue());
       }
     }
     if (labels != null) {
-      verbose("LABELS: " + environment);
       for (Entry<String, String> pair : labels.entrySet()) {
+        verbose("LABEL " + pair.getKey() + "=" + pair.getValue());
         builder.addLabel(pair.getKey(), pair.getValue());
       }
     }
     if (ports != null) {
-      verbose("EXPOSE: " + ports);
-      ports.forEach(builder::addExposedPort);
+      for (Port port : ports) {
+        verbose("EXPOSE " + port);
+        builder.addExposedPort(port);
+      }
     }
     if (user != null) {
-      verbose("USER: " + environment);
+      verbose("USER " + environment);
       builder.setUser(user);
     }
     if (layers != null) {
@@ -218,11 +237,10 @@ public class Bilge implements Callable<Void> {
         builder.addLayer(layer);
       }
     }
-    String destinationImage = toDocker != null ? toDocker : toRegistry;
     Containerizer containerizer =
-        toDocker != null
-            ? Containerizer.to(DockerDaemonImage.named(toDocker))
-            : Containerizer.to(RegistryImage.named(toRegistry));
+        toDocker
+            ? Containerizer.to(DockerDaemonImage.named(destinationImage))
+            : Containerizer.to(RegistryImage.named(destinationImage));
     containerizer.setAllowInsecureRegistries(insecure);
     containerizer.setToolName("bilge");
 

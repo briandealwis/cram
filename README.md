@@ -37,3 +37,15 @@ The following example uses _bilge_ to containerize itself.  The image is loaded 
     $ docker run --rm bilge
 
 We'd be better off using `jib-maven-plugin` to create the container since it would create better layer strategy that negates the need to use a fatjar.
+
+## Compiling with Graal's `native-image`
+
+```
+$ mvn package
+$ $GRAALVM/bin/native-image \
+   -jar bilge-cli/target/bilge-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+   -H:ReflectionConfigurationFiles=bilge-cli/target/cli-reflect.json \
+   --rerun-class-initialization-at-runtime=org.apache.http.conn.ssl.SSLSocketFactory \
+   --rerun-class-initialization-at-runtime=javax.net.ssl.HttpsURLConnection
+```
+
