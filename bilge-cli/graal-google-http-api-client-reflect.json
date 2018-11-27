@@ -1,0 +1,37 @@
+[
+  {
+    "name" : "com.google.api.client.http.HttpHeaders",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "accept" },
+      { "name" : "acceptEncoding" },
+      { "name" : "authorization" },
+      { "name" : "cacheControl" },
+      { "name" : "contentEncoding" },
+      { "name" : "contentLength" },
+      { "name" : "contentMD5" },
+      { "name" : "contentRange" },
+      { "name" : "contentType" },
+      { "name" : "cookie" },
+      { "name" : "date" },
+      { "name" : "etag" },
+      { "name" : "expires" },
+      { "name" : "ifModifiedSince" },
+      { "name" : "ifMatch" },
+      { "name" : "ifNoneMatch" },
+      { "name" : "ifUnmodifiedSince" },
+      { "name" : "ifRange" },
+      { "name" : "lastModified" },
+      { "name" : "location" },
+      { "name" : "mimeVersion" },
+      { "name" : "range" },
+      { "name" : "retryAfter" },
+      { "name" : "userAgent" },
+      { "name" : "authenticate" },
+      { "name" : "age" }
+    ]
+  }
+]

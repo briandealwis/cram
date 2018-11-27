@@ -1,0 +1,259 @@
+[
+  {
+    "name" : "java.util.ArrayList",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.DescriptorDigestDeserializer",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.DescriptorDigestSerializer",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.json.JsonTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.RegistryAuthenticator$AuthenticationResponseTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "token" },
+      { "name" : "access_token" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.credentials.json.DockerConfigTemplate$AuthTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "auth" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$ConfigurationObjectTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "Env" },
+      { "name" : "Entrypoint" },
+      { "name" : "Cmd" },
+      { "name" : "ExposedPorts" },
+      { "name" : "Labels" },
+      { "name" : "WorkingDir" },
+      { "name" : "User" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "created" },
+      { "name" : "architecture" },
+      { "name" : "os" },
+      { "name" : "config", "allowWrite" : true },
+      { "name" : "history", "allowWrite" : true },
+      { "name" : "rootfs", "allowWrite" : true }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.BuildableManifestTemplate$ContentDescriptorTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "mediaType" },
+      { "name" : "digest" },
+      { "name" : "size" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.credentials.json.DockerConfigTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "auths" },
+      { "name" : "credsStore" },
+      { "name" : "credHelpers" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.credentials.DockerCredentialHelper$DockerCredentialsTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "Username" },
+      { "name" : "Secret" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.docker.json.DockerLoadManifestEntryTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "config" },
+      { "name" : "repoTags" },
+      { "name" : "layers" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.json.ErrorEntryTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "code" },
+      { "name" : "message" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.registry.json.ErrorResponseTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "errors" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.HistoryEntry",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "author" },
+      { "name" : "comment" },
+      { "name" : "createdBy" },
+      { "name" : "creationTimestamp" },
+      { "name" : "emptyLayer" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "extractionPath" },
+      { "name" : "lastModifiedTime" },
+      { "name" : "sourceFile" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.V21ManifestTemplate$LayerObjectTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "blobSum" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$RootFilesystemObjectTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "type", "allowWrite" : true },
+      { "name" : "diff_ids", "allowWrite" : true }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.V21ManifestTemplate$V1CompatibilityTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "v1Compatibility" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.V21ManifestTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "schemaVersion", "allowWrite" : true },
+      { "name" : "fsLayers", "allowWrite" : true },
+      { "name" : "history", "allowWrite" : true }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.OCIManifestTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "schemaVersion", "allowWrite" : true },
+      { "name" : "mediaType", "allowWrite" : true },
+      { "name" : "config" },
+      { "name" : "layers" }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.V22ManifestTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "fields" : [
+      { "name" : "schemaVersion", "allowWrite" : true },
+      { "name" : "mediaType", "allowWrite" : true },
+      { "name" : "config" },
+      { "name" : "layers", "allowWrite" : true }
+    ]
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.BuildableManifestTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "com.google.cloud.tools.jib.image.json.ManifestTemplate",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  }
+]

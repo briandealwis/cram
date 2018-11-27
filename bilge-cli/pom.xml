@@ -12,6 +12,7 @@
 
   <properties>
     <picocli.version>3.8.0</picocli.version>
+    <slf4j.version>1.7.25</slf4j.version>
   </properties>
 
   <dependencies>
@@ -19,12 +20,35 @@
       <groupId>com.google.cloud.tools</groupId>
       <artifactId>jib-core</artifactId>
       <version>0.1.0</version>
+      <exclusions>
+          <exclusion>
+              <artifactId>commons-logging</artifactId>
+              <groupId>commons-logging</groupId>
+          </exclusion>
+      </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>23.5-jre</version>
     </dependency>
+
     <dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
@@ -75,7 +99,7 @@
           <includePluginDependencies>true</includePluginDependencies>
           <mainClass>picocli.codegen.aot.graalvm.ReflectionConfigGenerator</mainClass>
           <arguments>
-            <argument>--output=${project.build.directory}/cli-reflect.json</argument>
+            <argument>--output=${project.build.directory}/graal-cli-reflect.json</argument>
             <argument>ca.mt.bilge.Bilge</argument>
           </arguments>
         </configuration>

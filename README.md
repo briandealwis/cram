@@ -40,11 +40,25 @@ We'd be better off using `jib-maven-plugin` to create the container since it wou
 
 ## Compiling with Graal's `native-image`
 
+  - switched to using SLF4j with Apache Commons Logging facade to avoid
+    the need to configure reflection for LogFactory 
+  - must explicitly enable [`http` and `https` support](https://github.com/oracle/graal/blob/master/substratevm/URL-PROTOCOLS.md)
+  - must somehow set `java.library.path` at compile time, or copy
+    in $GRAALVM/jre/lib/libsunec.* into the current directory, to make
+    the [SunEC JCA extensions
+    available](https://github.com/oracle/graal/blob/master/substratevm/JCA-SECURITY-SERVICES.md#native-implementations).
+  - the `graal-jib-reflect.json` must be updated as Jib Core adds
+    new fields to Jackson JSON templates.  Jib Core 0.2.0 will be
+    bringing _volumes_ and _permissions_ support.
+
 ```
 $ mvn package
 $ $GRAALVM/bin/native-image \
    -jar bilge-cli/target/bilge-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
-   -H:ReflectionConfigurationFiles=bilge-cli/target/cli-reflect.json \
+   --no-server --enable-http --enable-https \
+   -H:ReflectionConfigurationFiles=bilge-cli/graal-google-http-api-client-reflect.json \
+   -H:ReflectionConfigurationFiles=bilge-cli/graal-jib-reflect.json \
+   -H:ReflectionConfigurationFiles=bilge-cli/target/graal-cli-reflect.json \
    --rerun-class-initialization-at-runtime=org.apache.http.conn.ssl.SSLSocketFactory \
    --rerun-class-initialization-at-runtime=javax.net.ssl.HttpsURLConnection
 ```
