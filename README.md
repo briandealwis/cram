@@ -18,25 +18,30 @@ The following example creates an nginx-based container to serve static content t
 The result is loaded to the local Docker daemon as `my-static-website`:
 
     $ java -jar bilge-cli/target/bilge-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
-      --from nginx \
+      --docker \
+      nginx \
+      my-static-website \
       --port 80 \
-      --docker my-static-website 
       --entrypoint "nginx,-g,daemon off;" \
       path/to/website:/usr/share/nginx/html
     $ docker run -it --rm -p 8080:80 my-static-website
 
 ### Java app
 
-The following example uses _bilge_ to containerize itself.  The image is loaded to the local Docker daemon, which can then push it elsewhere.
+The following example uses _bilge_ to containerize itself.  The image is pushed to a registry at localhost:5000:
 
     $ java -jar bilge-cli/target/bilge-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
-      --from gcr.io/distroless/java \
-      --docker localhost:5000/bilge:latest \
+      --registry \
+      gcr.io/distroless/java \
+      localhost:5000/bilge:latest \
+      --insecure \
       --entrypoint "java,-jar,/app/bilge.jar" \
       bilge-cli/target/bilge-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/app/bilge.jar
-    $ docker run --rm bilge
+    $ docker run --rm localhost:5000/bilge:latest
 
-We'd be better off using `jib-maven-plugin` to create the container since it would create better layer strategy that negates the need to use a fatjar.
+We need to use `--insecure` assuming the local registry does not support SSL.
+
+Note that we'd be better off using `jib-maven-plugin` to create the container since it would create better layer strategy that negates the need to use a fatjar.
 
 ## Compiling with Graal's `native-image`
 
