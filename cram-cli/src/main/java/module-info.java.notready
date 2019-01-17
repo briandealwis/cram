@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-module ca.mt.bilge {
-  exports ca.mt.bilge;
+module ca.mt.cram {
+  exports ca.mt.cram;
   requires info.picocli;
-  requires jib.core;
+  requires com.google.cloud.tools.jib;
 }

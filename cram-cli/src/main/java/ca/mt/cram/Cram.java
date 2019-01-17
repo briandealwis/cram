@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ca.mt.bilge;
+package ca.mt.cram;
 
 import com.google.cloud.tools.jib.api.Containerizer;
 import com.google.cloud.tools.jib.api.DockerDaemonImage;
@@ -48,8 +48,8 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
-/** A simple commandp-line container builder. */
-public class Bilge implements Callable<Void> {
+/** A simple command-line container builder. */
+public class Cram implements Callable<Void> {
 
   /** Transforms an image specification to an {@link ImageReference}. */
   private static class ImageReferenceParser implements CommandLine.ITypeConverter<ImageReference> {
@@ -110,7 +110,7 @@ public class Bilge implements Callable<Void> {
 
   /** The magic starts here. */
   public static void main(String[] args) {
-    CommandLine.call(new Bilge(), args);
+    CommandLine.call(new Cram(), args);
   }
 
   /** The Picocli command object. */
@@ -264,7 +264,7 @@ public class Bilge implements Callable<Void> {
             ? Containerizer.to(DockerDaemonImage.named(destinationImage))
             : Containerizer.to(toCredentialedImage(destinationImage));
     containerizer.setAllowInsecureRegistries(insecure);
-    containerizer.setToolName("bilge");
+    containerizer.setToolName("cram");
 
     ExecutorService executor = Executors.newCachedThreadPool();
     try {

@@ -3,11 +3,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>ca.mt.bilge</groupId>
+    <groupId>ca.mt.cram</groupId>
     <artifactId>top</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>bilge-cli</artifactId>
+  <artifactId>cram-cli</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
@@ -63,7 +63,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>ca.mt.bilge.Bilge</mainClass>
+              <mainClass>ca.mt.cram.Cram</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
@@ -87,6 +87,7 @@
         <version>1.6.0</version>
         <executions>
           <execution>
+            <?m2e execute onConfiguration?>
             <id>generateGraalReflectionConfig</id>
             <phase>process-classes</phase>
             <goals>
@@ -100,7 +101,7 @@
           <mainClass>picocli.codegen.aot.graalvm.ReflectionConfigGenerator</mainClass>
           <arguments>
             <argument>--output=${project.build.directory}/graal-cli-reflect.json</argument>
-            <argument>ca.mt.bilge.Bilge</argument>
+            <argument>ca.mt.cram.Cram</argument>
           </arguments>
         </configuration>
         <dependencies>
