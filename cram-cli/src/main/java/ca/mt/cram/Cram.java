@@ -16,32 +16,34 @@
 
 package ca.mt.cram;
 
+import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.Containerizer;
 import com.google.cloud.tools.jib.api.DockerDaemonImage;
+import com.google.cloud.tools.jib.api.ImageReference;
 import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.JibContainer;
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
+import com.google.cloud.tools.jib.api.LayerConfiguration;
+import com.google.cloud.tools.jib.api.LogEvent;
+import com.google.cloud.tools.jib.api.Port;
+import com.google.cloud.tools.jib.api.Ports;
 import com.google.cloud.tools.jib.api.RegistryImage;
-import com.google.cloud.tools.jib.configuration.LayerConfiguration;
-import com.google.cloud.tools.jib.configuration.Port;
-import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory;
-import com.google.cloud.tools.jib.image.ImageReference;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -51,60 +53,35 @@ import picocli.CommandLine.Spec;
 /** A simple command-line container builder. */
 public class Cram implements Callable<Void> {
 
+  /** Parses a port specification like {@code 25/tcp} into a {@link Port} objects. */
+  @VisibleForTesting
+  static class PortParser implements CommandLine.ITypeConverter<Collection<Port>> {
+
+    public Collection<Port> convert(String value) throws Exception {
+      return Ports.parse(Collections.singletonList(value));
+    }
+  }
+
   /** Transforms an image specification to an {@link ImageReference}. */
-  private static class ImageReferenceParser implements CommandLine.ITypeConverter<ImageReference> {
+  @VisibleForTesting
+  static class ImageReferenceParser implements CommandLine.ITypeConverter<ImageReference> {
+
     @Override
     public ImageReference convert(String imageSpec) throws Exception {
+      if ("scratch".equals(imageSpec)) {
+        return ImageReference.scratch();
+      }
       return ImageReference.parse(imageSpec);
     }
   }
-  /**
-   * Parses a layer mapping of the form of {@code local-path:container-path}. A shortcut form,
-   * {@code local-path} is also supported, equivalent to {@code local-path:/}.
-   */
-  private static class LayerDefinitionParser
-      implements CommandLine.ITypeConverter<LayerConfiguration> {
+
+  /** Parses a path specification like {@code 25/tcp} into a {@link Port} object. */
+  @VisibleForTesting
+  static class PathParser implements CommandLine.ITypeConverter<AbsoluteUnixPath> {
+
     @Override
-    public LayerConfiguration convert(String value) throws Exception {
-      String[] definition = value.split(File.pathSeparator);
-      if (definition.length > 2) {
-        throw new CommandLine.TypeConversionException(
-            "layer definition must be one of:\n"
-                + "  files/location   (files placed in container root)\n"
-                + "  files/location"
-                + File.pathSeparatorChar
-                + "path/in/container");
-      }
-      String containerRoot = definition.length == 1 ? "/" : definition[1];
-      return LayerConfiguration.builder()
-          .addEntryRecursive(Paths.get(definition[0]), AbsoluteUnixPath.get(containerRoot))
-          .build();
-    }
-  }
-
-  /** Parses a port specification like {@code 25/tcp} into a {@link Port} object. */
-  private static class PortParser implements CommandLine.ITypeConverter<Port> {
-    private static Pattern portPattern = Pattern.compile("(?<port>\\d+)(?:/(?<protocol>tcp|udp))?");
-
-    public Port convert(String value) throws Exception {
-      Matcher matcher = portPattern.matcher(value);
-      if (matcher.matches()) {
-        int port = Integer.parseInt(matcher.group("port"));
-        String protocol = matcher.group("protocol");
-        if (protocol == null) {
-          protocol = "tcp";
-        }
-        switch (protocol) {
-          case "udp":
-            return Port.udp(port);
-          case "tcp":
-            return Port.tcp(port);
-          default:
-            throw new CommandLine.TypeConversionException(
-                "protocol must be either tcp or udp: " + protocol);
-        }
-      }
-      throw new CommandLine.TypeConversionException("ports must be of form 25 or 25/tcp: " + value);
+    public AbsoluteUnixPath convert(String unixPath) throws Exception {
+      return AbsoluteUnixPath.get(unixPath);
     }
   }
 
@@ -120,49 +97,57 @@ public class Cram implements Callable<Void> {
       names = {"-d", "--docker"},
       paramLabel = "image",
       description = "push result to local Docker daemon")
-  private boolean toDocker = false;
+  @VisibleForTesting
+  boolean toDocker = false;
 
   @Option(
       names = {"-r", "--registry"},
       description = "push to registry")
-  private boolean toRegistry = false;
+  @VisibleForTesting
+  boolean toRegistry = false;
 
   @Option(
       names = {"-c", "--creation-time"},
       description = "set the image creation time")
-  private Instant creationTime = Instant.now();
+  @VisibleForTesting
+  Instant creationTime = Instant.now();
 
   @Option(
       names = {"-v", "--verbose"},
       description = "be verbose")
-  private boolean verbose = false;
+  @VisibleForTesting
+  boolean verbose = false;
 
   @Option(
       names = {"-e", "--entrypoint"},
       paramLabel = "arg",
       split = ",",
       description = "set the container entrypoint")
-  private List<String> entrypoint;
+  @VisibleForTesting
+  List<String> entrypoint;
 
   @Option(
       names = {"-a", "--arguments"},
       split = ",",
       description = "set the container entrypoint's default arguments")
-  private List<String> arguments;
+  @VisibleForTesting
+  List<String> arguments;
 
   @Option(
       names = {"-E", "--environment"},
       split = ",",
       paramLabel = "key=value",
       description = "add environment pairs")
-  private Map<String, String> environment;
+  @VisibleForTesting
+  Map<String, String> environment;
 
   @Option(
       names = {"-l", "--label"},
       split = ",",
       paramLabel = "key=value",
       description = "add image labels")
-  private Map<String, String> labels;
+  @VisibleForTesting
+  Map<String, String> labels;
 
   @Option(
       names = {"-C", "--credential-helper"},
@@ -170,7 +155,8 @@ public class Cram implements Callable<Void> {
       description =
           "add a credential helper, either a path to the helper,"
               + "or a `docker-credential-<suffix>`")
-  private List<String> credentialHelpers = new ArrayList<>();
+  @VisibleForTesting
+  List<String> credentialHelpers = new ArrayList<>();
 
   @Option(
       names = {"-p", "--port"},
@@ -178,25 +164,38 @@ public class Cram implements Callable<Void> {
       paramLabel = "port",
       description = "expose port/type (e.g., 25 or 25/tcp)",
       converter = PortParser.class)
-  private List<Port> ports;
+  @VisibleForTesting
+  List<Port> ports;
+
+  @Option(
+      names = {"-V", "--volume"},
+      split = ",",
+      paramLabel = "path",
+      description = "configure specified paths as volumes",
+      converter = PathParser.class)
+  @VisibleForTesting
+  List<AbsoluteUnixPath> volumes;
 
   @Option(
       names = {"-u", "--user"},
       paramLabel = "user",
       description = "set user for execution (uid or existing user id)")
-  private String user;
+  @VisibleForTesting
+  String user;
 
   @Option(
       names = {"-k", "--insecure"},
       description = "allow connecting to insecure registries")
-  private boolean insecure = false;
+  @VisibleForTesting
+  boolean insecure = false;
 
   @Parameters(
       index = "0",
       paramLabel = "base-image",
       description = "the base image (e.g., busybox, nginx, gcr.io/distroless/java)",
       converter = ImageReferenceParser.class)
-  private ImageReference baseImage;
+  @VisibleForTesting
+  ImageReference baseImage;
 
   @Parameters(
       index = "1",
@@ -205,15 +204,18 @@ public class Cram implements Callable<Void> {
           "the destination image (e.g., localhost:5000/image:1.0, "
               + "gcr.io/project/image:latest)",
       converter = ImageReferenceParser.class)
-  private ImageReference destinationImage;
+  @VisibleForTesting
+  ImageReference destinationImage;
 
   @Parameters(
       index = "2..*",
-      paramLabel = "local/path[:/container/path]",
+      paramLabel = "local/path[:/container/path[:fileperms:dirperms]]",
       description =
-          "copies content from the local file system into the container; container path defaults to '/' if omitted.",
+          "Copies content from the local file system into the container. Container path defaults to '/' if omitted. "
+              + "File permission default to 0644 and directories to 0755",
       converter = LayerDefinitionParser.class)
-  private List<LayerConfiguration> layers;
+  @VisibleForTesting
+  List<LayerConfiguration> layers;
 
   @Override
   public Void call() throws Exception {
@@ -250,6 +252,12 @@ public class Cram implements Callable<Void> {
         builder.addExposedPort(port);
       }
     }
+    if (volumes != null) {
+      for (AbsoluteUnixPath volume : volumes) {
+        verbose("VOLUME " + volume);
+        builder.addVolume(volume);
+      }
+    }
     if (user != null) {
       verbose("USER " + environment);
       builder.setUser(user);
@@ -265,6 +273,7 @@ public class Cram implements Callable<Void> {
             : Containerizer.to(toCredentialedImage(destinationImage));
     containerizer.setAllowInsecureRegistries(insecure);
     containerizer.setToolName("cram");
+    containerizer.addEventHandler(LogEvent.class, e -> System.out.println(e));
 
     ExecutorService executor = Executors.newCachedThreadPool();
     try {
@@ -293,8 +302,8 @@ public class Cram implements Callable<Void> {
       }
     }
     // then add any other known helpers
-    registryImage.addCredentialRetriever(factory.inferCredentialHelper());
     registryImage.addCredentialRetriever(factory.dockerConfig());
+    registryImage.addCredentialRetriever(factory.inferCredentialHelper());
 
     return registryImage;
   }
