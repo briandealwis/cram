@@ -11,7 +11,7 @@ a Java library for building containers without Docker.
 
 `mvn package`
 
-This creates a fatjar in `cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar`.
+This creates a fatjar in `target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar`.
 
 ## Examples
 
@@ -19,7 +19,7 @@ This creates a fatjar in `cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-depen
 The following example creates an nginx-based container to serve static content that is found in `path/to/website`.
 The result is loaded to the local Docker daemon as `my-static-website`:
 
-    $ java -jar cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+    $ java -jar cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
       --docker \
       nginx \
       my-static-website \
@@ -32,13 +32,13 @@ The result is loaded to the local Docker daemon as `my-static-website`:
 
 The following example uses _cram_ to containerize itself.  The image is pushed to a registry at localhost:5000:
 
-    $ java -jar cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+    $ java -jar cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
       --registry \
       gcr.io/distroless/java \
       localhost:5000/cram:latest \
       --insecure \
       --entrypoint "java,-jar,/app/cram.jar" \
-      cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/app/cram.jar
+      cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/app/cram.jar
     $ docker run --rm localhost:5000/cram:latest
 
 We need to use `--insecure` assuming the local registry does not support SSL.
@@ -61,11 +61,11 @@ Note that we'd be better off using `jib-maven-plugin` to create the container si
 ```
 $ mvn package
 $ $GRAALVM/bin/native-image \
-   -jar cram-cli/target/cram-cli-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
+   -jar cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
    --no-server --enable-http --enable-https \
-   -H:ReflectionConfigurationFiles=cram-cli/graal-google-http-api-client-reflect.json \
-   -H:ReflectionConfigurationFiles=cram-cli/graal-jib-reflect.json \
-   -H:ReflectionConfigurationFiles=cram-cli/target/graal-cli-reflect.json \
+   -H:ReflectionConfigurationFiles=cram/graal-google-http-api-client-reflect.json \
+   -H:ReflectionConfigurationFiles=cram/graal-jib-reflect.json \
+   -H:ReflectionConfigurationFiles=cram/target/graal-cli-reflect.json \
    --rerun-class-initialization-at-runtime=org.apache.http.conn.ssl.SSLSocketFactory \
    --rerun-class-initialization-at-runtime=javax.net.ssl.HttpsURLConnection
 ```
