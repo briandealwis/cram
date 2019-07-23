@@ -209,10 +209,17 @@ public class Cram implements Callable<Void> {
 
   @Parameters(
       index = "2..*",
-      paramLabel = "local/path[:/container/path[:fileperms:dirperms]]",
+      paramLabel = "local/path[:/container/path[:directive1:directive2:...]]",
       description =
-          "Copies content from the local file system into the container. Container path defaults to '/' if omitted. "
-              + "File permission default to 0644 and directories to 0755",
+          "Copies content from the local file system as a new layer. "
+              + "Container path defaults to '/' if omitted. "
+              + "Directives include:\n"
+              + "- name=xxx - to set the layer name\n"
+              + "- perms=fff/ddd - to set file and directory permissions (octal)\n"
+              + "- ts=timestamp - to set last-modified timestamps, either in ISO8601 format, "
+              + "or 'actual' to take last-modified timestamps in file-system\n"
+              + "File permission default to 0644 and directories to 0755. "
+              + "Timestamps default to 1 second after Unix epoch (1970-01-01 00:00:00 UTC)",
       converter = LayerDefinitionParser.class)
   @VisibleForTesting
   List<LayerConfiguration> layers;
