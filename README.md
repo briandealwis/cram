@@ -16,6 +16,7 @@ This creates a fatjar in `target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar`.
 ## Examples
 
 ### nginx
+
 The following example creates an nginx-based container to serve static content that is found in `path/to/website`.
 The result is loaded to the local Docker daemon as `my-static-website`:
 
@@ -30,7 +31,7 @@ The result is loaded to the local Docker daemon as `my-static-website`:
 
 ### Java app
 
-The following example uses _cram_ to containerize itself.  The image is pushed to a registry at localhost:5000:
+The following example uses _cram_ to containerize itself.  The image is pushed to a registry at `localhost:5000`:
 
     $ java -jar cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
       --registry \
@@ -47,26 +48,16 @@ Note that we'd be better off using `jib-maven-plugin` to create the container si
 
 ## Compiling with Graal's `native-image`
 
+```
+$ sh build-native.sh
+```
+
   - switched to using SLF4j with Apache Commons Logging facade to avoid
-    the need to configure reflection for LogFactory 
+    the need to configure reflection for `LogFactory`
   - must explicitly enable [`http` and `https` support](https://github.com/oracle/graal/blob/master/substratevm/URL-PROTOCOLS.md)
   - must somehow set `java.library.path` at compile time, or copy
     in $GRAALVM/jre/lib/libsunec.* into the current directory, to make
     the [SunEC JCA extensions
     available](https://github.com/oracle/graal/blob/master/substratevm/JCA-SECURITY-SERVICES.md#native-implementations).
   - the `graal-jib-reflect.json` must be updated as Jib Core adds
-    new fields to Jackson JSON templates.  Jib Core 0.2.0 will be
-    bringing _volumes_ and _permissions_ support.
-
-```
-$ mvn package
-$ $GRAALVM/bin/native-image \
-   -jar cram/target/cram-0.0.1-SNAPSHOT-jar-with-dependencies.jar \
-   --no-server --enable-http --enable-https \
-   -H:ReflectionConfigurationFiles=cram/graal-google-http-api-client-reflect.json \
-   -H:ReflectionConfigurationFiles=cram/graal-jib-reflect.json \
-   -H:ReflectionConfigurationFiles=cram/target/graal-cli-reflect.json \
-   --rerun-class-initialization-at-runtime=org.apache.http.conn.ssl.SSLSocketFactory \
-   --rerun-class-initialization-at-runtime=javax.net.ssl.HttpsURLConnection
-```
-
+    new fields to Jackson JSON templates. 

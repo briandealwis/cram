@@ -28,13 +28,6 @@
       <groupId>com.google.cloud.tools</groupId>
       <artifactId>jib-core</artifactId>
       <version>${jib-core.version}</version>
-      <exclusions>
-        <!-- swap sl4j for commons-logging -->
-        <exclusion>
-          <artifactId>commons-logging</artifactId>
-          <groupId>commons-logging</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -56,7 +49,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>23.5-jre</version>
+      <version>28.1-jre</version>
     </dependency>
 
     <dependency>
@@ -83,15 +76,16 @@
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
         <configuration>
           <archive>
             <manifest>
               <mainClass>ca.mt.cram.Cram</mainClass>
             </manifest>
           </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
+          <descriptors>
+            <descriptor>cram-fatjar.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>

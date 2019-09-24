@@ -1,0 +1,20 @@
+[
+  {
+    "name" : "org.apache.http.Header"
+  },
+  {
+    "name" : "org.apache.http.client.methods.CloseableHttpResponse"
+  },
+  {
+    "name" : "org.apache.http.HttpEntity"
+  },
+  {
+    "name" : "org.apache.http.params.HttpParams"
+  },
+  {
+    "name" : "org.apache.http.StatusLine"
+  },
+  {
+    "name" : "org.apache.http.ProtocolVersion"
+  }
+]
