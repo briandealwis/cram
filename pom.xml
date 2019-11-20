@@ -28,6 +28,12 @@
       <groupId>com.google.cloud.tools</groupId>
       <artifactId>jib-core</artifactId>
       <version>${jib-core.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -51,6 +57,14 @@
       <artifactId>guava</artifactId>
       <version>28.1-jre</version>
     </dependency>
+    
+    <!--
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bctls-jdk15on</artifactId>
+      <version>1.61</version>
+    </dependency>
+    -->
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -72,6 +86,40 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.0</version>
+      </plugin>
+      
+      <plugin>
+        <groupId>com.oracle.substratevm</groupId>
+        <artifactId>native-image-maven-plugin</artifactId>
+        <version>19.2.1</version>
+        <configuration>
+          <imageName>cram</imageName>
+          <buildArgs>
+            --no-fallback
+            --verbose
+            -J-Djava.security.properties=java.security.overrides
+            -J-Djavax.net.ssl.trustStore=${env.GRAAL_HOME}/jre/lib/security/cacerts
+            -J-Djavax.net.ssl.trustStorePassword=changeit
+            --enable-all-security-services
+            --enable-http
+            --enable-https
+            --report-unsupported-elements-at-runtime
+            --initialize-at-run-time=org.apache.commons.logging.LogFactory
+            -H:+TraceClassInitialization
+            -H:ReflectionConfigurationFiles=../graal-google-http-api-client-reflect.json
+            -H:ReflectionConfigurationFiles=../graal-jib-reflect.json
+            -H:ReflectionConfigurationFiles=../graal-bouncycastle-reflect.json
+            -H:ReflectionConfigurationFiles=../graal-apache-http-reflect.json
+            -H:ReflectionConfigurationFiles=../target/graal-cli-reflect.json
+            --initialize-at-run-time=org.apache.http.conn.ssl.SSLSocketFactory
+            --initialize-at-build-time=org.apache.http.Header
+            --initialize-at-build-time=org.apache.http.client.methods.CloseableHttpResponse
+            --initialize-at-build-time=org.apache.http.HttpEntity
+            --initialize-at-build-time=org.apache.http.params.HttpParams
+            --initialize-at-build-time=org.apache.http.StatusLine
+            --initialize-at-build-time=org.apache.http.ProtocolVersion
+          </buildArgs>
+        </configuration>
       </plugin>
 
       <plugin>

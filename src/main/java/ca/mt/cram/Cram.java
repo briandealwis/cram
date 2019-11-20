@@ -34,8 +34,10 @@ import com.google.common.base.Joiner;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Security;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -87,6 +90,20 @@ public class Cram implements Callable<Void> {
 
   /** The magic starts here. */
   public static void main(String[] args) {
+    //    if (System.getenv("USEBC") != null) {
+    //      Security.removeProvider("SunEC");
+    //      Security.removeProvider("SunJSSE");
+    //      Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+    //      Security.removeProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+    //      Security.insertProviderAt(new BouncyCastleProvider(), 1);
+    //      Security.insertProviderAt(new BouncyCastleJsseProvider(), 2);
+    //    }
+    System.out.println(
+        "Security providers: "
+            + Arrays.stream(Security.getProviders())
+                .map(p -> p.toString() + " / " + p.getClass())
+                .collect(Collectors.joining("\n  - ")));
+
     CommandLine.call(new Cram(), args);
   }
 

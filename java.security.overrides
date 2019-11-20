@@ -1,0 +1,2 @@
+# slot 3 is the SunEC provider (cf oracle/graalvm#1336
+security.provider.3=bcprov
