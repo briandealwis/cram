@@ -1,5 +1,7 @@
 # Cram
 
+***Note: Cram has been moved into Jib as the [Jib CLI utility](https://github.com/GoogleContainerTools/jib/tree/master/jib-cli)***
+
 Cram is a little Java-based command-line utility for building
 Docker containers from file system content. 
 It serves as a demonstration of [Jib Core](https://github.com/GoogleContainerTools/jib/tree/master/jib-core),
